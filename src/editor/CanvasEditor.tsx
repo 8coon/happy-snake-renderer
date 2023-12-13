@@ -9,11 +9,11 @@ import {
 } from "@tldraw/tldraw";
 
 import {
-    Canvas,
     TldrawEditor,
 } from '@tldraw/editor'
 
 import {useShallowArrayIdentity, useShallowObjectIdentity} from "./utils/useIdentity";
+import {Canvas} from "./Canvas";
 
 export function CanvasEditor(props: TldrawProps) {
     const {
