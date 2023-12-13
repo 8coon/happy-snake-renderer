@@ -19,8 +19,9 @@ export const uiOverrides: TLUiOverrides = {
 	},
 	toolbar(_app, toolbar, { tools }) {
 		// Add the tool item from the context to the toolbar.
-		toolbar.splice(4, 0, toolbarItem(tools.card))
-		return toolbar
+		//toolbar.splice(4, 0, toolbarItem(tools.card))
+		//return toolbar
+		return [...toolbar.slice(0, 2), toolbarItem(tools.card)];
 	},
 	keyboardShortcutsMenu(_app, keyboardShortcutsMenu, { tools }) {
 		// Add the tool item from the context to the keyboard shortcuts dialog.
