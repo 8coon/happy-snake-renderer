@@ -41,6 +41,31 @@ function ShapesToDisplay(props: {editor: Editor}) {
 export function Canvas({ className }: { className?: string }) {
     const editor = useEditor();
 
+   React.useEffect(() => {
+        function transformCanvas() {
+            if (!rContainer.current) {
+                return;
+            }
+
+            const {x, y, z} = editor.getCamera();
+
+            const offset =
+                z >= 1
+                    ? modulate(z, [1, 8], [0.125, 0.5], true)
+                    : modulate(z, [0.1, 1], [-2, 0.125], true);
+
+            const matrix = new Matrix().scale(z, z).translate(x + offset, y + offset);
+
+            rContainer.current.transform.setFromMatrix(matrix);
+        }
+
+        editor.on("frame", transformCanvas)
+
+        return () => {
+            editor.off("frame", transformCanvas);
+        }
+    }, [editor]);
+
     // const { Background, SvgDefs } = useEditorComponents()
 
     //const rCanvas = React.useRef<HTMLDivElement>(null)
@@ -53,31 +78,6 @@ export function Canvas({ className }: { className?: string }) {
 
     useGestureEvents(rCanvas)
     useFixSafariDoubleTapZoomPencilEvents(rCanvas)*/
-
-    /*useQuickReactor(
-        'position layers',
-        () => {
-            const htmlElm = rHtmlLayer.current
-            if (!htmlElm) return
-            const htmlElm2 = rHtmlLayer2.current
-            if (!htmlElm2) return
-
-            const { x, y, z } = editor.getCamera()
-
-            // Because the html container has a width/height of 1px, we
-            // need to create a small offset when zoomed to ensure that
-            // the html container and svg container are lined up exactly.
-            const offset =
-                z >= 1 ? modulate(z, [1, 8], [0.125, 0.5], true) : modulate(z, [0.1, 1], [-2, 0.125], true)
-
-            const transform = `scale(${toDomPrecision(z)}) translate(${toDomPrecision(
-                x + offset
-            )}px,${toDomPrecision(y + offset)}px)`
-            htmlElm.style.setProperty('transform', transform)
-            htmlElm2.style.setProperty('transform', transform)
-        },
-        [editor]
-    )*/
 
     // const events = useCanvasEvents()
 
@@ -106,29 +106,6 @@ export function Canvas({ className }: { className?: string }) {
 
     const rContainer = React.useRef<_ReactPixi.IContainer>();
     const events = useCanvasEvents();
-
-    useQuickReactor(
-        'position layers',
-        () => {
-            console.log("position");
-            if (!rContainer.current) {
-                return;
-            }
-            
-            const {x, y, z} = editor.getCamera();
-
-            const offset =
-                z >= 1
-                    ? modulate(z, [1, 8], [0.125, 0.5], true)
-                    : modulate(z, [0.1, 1], [-2, 0.125], true);
-
-            const matrix = new Matrix().scale(z, z).translate(x + offset, y + offset);
-            console.log(x, y, z);
-
-            rContainer.current.transform.setFromMatrix(matrix);
-        },
-        [editor, rContainer.current]
-    );
 
     return (
         <Stage
