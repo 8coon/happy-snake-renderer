@@ -9,10 +9,14 @@ import {
 import * as React from 'react';
 import { cardShapeProps } from './card-shape-props';
 import { ICardShape } from './card-shape-types';
+import {Rectangle} from "../../blocks/Rectangle";
+import {Color} from "@pixi/color";
 
 // A utility class for the card shape. This is where you define
 // the shape's behavior, how it renders (its component and
 // indicator), and how it handles different events.
+
+const gray = new Color('rgb(120, 120, 120, 0.5)').toArray();
 
 export class CardShapeUtil extends ShapeUtil<ICardShape> {
 	static override type = 'card' as const
@@ -50,6 +54,16 @@ export class CardShapeUtil extends ShapeUtil<ICardShape> {
 		const [count, setCount] = React.useState(0);
 
 		return (
+			<Rectangle
+				width={bounds.w}
+				height={bounds.h}
+				backgroundColor={gray}
+				borderColor={0xBFBFBF}
+				borderWidth={2}
+			/>
+		)
+
+		/*return (
 			<HTMLContainer
 				id={shape.id}
 				style={{
@@ -73,7 +87,7 @@ export class CardShapeUtil extends ShapeUtil<ICardShape> {
 					{bounds.w.toFixed()}x{bounds.h.toFixed()}
 				</button>
 			</HTMLContainer>
-		)
+		)*/
 	}
 
 	// Indicator — used when hovering over a shape or when it's selected; must return only SVG elements here

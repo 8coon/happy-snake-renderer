@@ -1,18 +1,33 @@
 import * as React from "react";
-import {modulate, toDomPrecision, useEditor, useQuickReactor, useValue} from "@tldraw/tldraw";
-import * as events from "events";
-import {Container, Stage, useApp} from "@pixi/react";
+import {Editor, modulate, toDomPrecision, useEditor, useQuickReactor, useValue} from "@tldraw/tldraw";
+import {_ReactPixi, Container, Stage, useApp} from "@pixi/react";
+import {TLShape, TLShapeId, TLUnknownShape} from "@tldraw/tlschema";
+import {Box2d, ShapeUtil} from "@tldraw/editor";
+import {useCanvasEvents} from "./utils/useCanvasEvents";
+import {Matrix} from "@pixi/core";
+import {Resizer} from "./utils/Resizer";
 
-function Shape() {
+interface ShapeProps {
+    id: TLShapeId;
+    shape: TLShape;
+    util: ShapeUtil<TLUnknownShape>;
+    index: number;
+    backgroundIndex: number;
+    opacity: number;
+    isCulled: boolean;
+    maskedPageBounds: Box2d | undefined;
+}
+
+function Shape(props: ShapeProps) {
     return (
-        <Container/>
+        <Container x={props.shape.x} y={props.shape.y}>
+            {props.util.component(props.shape)}
+        </Container>
     );
 }
 
-function ShapesToDisplay() {
-    const editor = useEditor()
-
-    const renderingShapes = useValue('rendering shapes', () => editor.getRenderingShapes(), [editor])
+function ShapesToDisplay(props: {editor: Editor}) {
+    const renderingShapes = useValue('rendering shapes', () => props.editor.getRenderingShapes(), [props.editor]);
 
     return (
         <>
@@ -23,28 +38,8 @@ function ShapesToDisplay() {
     )
 }
 
-function Resizer() {
-    const pixi = useApp();
-
-    React.useEffect(() => {
-        function resize() {
-            pixi.resizeTo = window;
-            pixi.resize();
-        }
-
-        resize();
-        window.addEventListener("resize", resize);
-
-        return () => {
-            window.removeEventListener("resize", resize);
-        };
-    });
-
-    return null;
-}
-
 export function Canvas({ className }: { className?: string }) {
-    const editor = useEditor()
+    const editor = useEditor();
 
     // const { Background, SvgDefs } = useEditorComponents()
 
@@ -109,6 +104,32 @@ export function Canvas({ className }: { className?: string }) {
         debugFlags,
     ])*/
 
+    const rContainer = React.useRef<_ReactPixi.IContainer>();
+    const events = useCanvasEvents();
+
+    useQuickReactor(
+        'position layers',
+        () => {
+            console.log("position");
+            if (!rContainer.current) {
+                return;
+            }
+            
+            const {x, y, z} = editor.getCamera();
+
+            const offset =
+                z >= 1
+                    ? modulate(z, [1, 8], [0.125, 0.5], true)
+                    : modulate(z, [0.1, 1], [-2, 0.125], true);
+
+            const matrix = new Matrix().scale(z, z).translate(x + offset, y + offset);
+            console.log(x, y, z);
+
+            rContainer.current.transform.setFromMatrix(matrix);
+        },
+        [editor, rContainer.current]
+    );
+
     return (
         <Stage
             //ref={rCanvas}
@@ -119,13 +140,14 @@ export function Canvas({ className }: { className?: string }) {
             height={window.innerHeight}
             options={{
                 resizeTo: window,
+                backgroundColor: 0xFFFFFF
             }}
             {...events}
         >
-            <Resizer/>
+            <Resizer editor={editor}/>
 
-            <Container>
-                <ShapesToDisplay/>
+            <Container ref={rContainer as any}>
+                <ShapesToDisplay editor={editor}/>
             </Container>
 
             <Container>
